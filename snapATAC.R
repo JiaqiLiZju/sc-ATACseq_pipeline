@@ -16,7 +16,7 @@ summary(metadata.sel$UM)
 summary(metadata.sel$UQ)
 summary(metadata.sel$TN)
 
-# write.csv(metadata.sel, file = "./mouse.summary.txt")
+write.csv(metadata.sel, file = "./mouse.summary.txt")
 
 x.sp.sel = x.sp[sel,];
 # x.sp.sel@metaData = barcodes.sel[x.sp@barcode,];
