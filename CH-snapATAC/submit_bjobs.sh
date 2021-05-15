@@ -1,0 +1,2 @@
+for i in {10..40}; do cd COL$i && cp ../Drop_snapATAC_Mix_cluster.sh . && bsub<Drop_snapATAC_Mix_cluster.sh && echo `pwd` && cd ..; done
+for i in {10..40}; do cd COL$i/bowtie_out && python ../../get_metadata.py human.snap && python ../../get_metadata.py mouse.snap && echo `pwd` && cd ../../; done
