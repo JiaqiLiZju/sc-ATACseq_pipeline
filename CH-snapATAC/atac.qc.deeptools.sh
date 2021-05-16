@@ -1,11 +1,27 @@
-#ls  *.bam  |xargs -i samtools index {} 
-ls *last.bam |while read id;do
-nohup bamCoverage -p 5 --normalizeUsingRPKM -b $id -o ${id%%.*}.last.bw &
-done
-# nohup bamCoverage --normalizeUsing CPM -b $id -o ${id%%.*}.rm.bw & 
-
+# sort bam
 samtools sort -f -m 10G -@ 20 human.bam human.sorted.bam
 samtools index human.sorted.bam
+
+# Insert QC
+samtools view $outdir/human.sorted.bam |awk -F'\t' 'function abs(x){return ((x < 0.0) ? -x : x)} {print $1"\t"abs($9)}' | sort | uniq | cut -f 2 >$outdir/fragment.length.txt
+
+# peak-calling
+bedtools bamtobed -i human.sorted.bam >human.sorted.bed
+macs2 callpeak -g hs --nomodel \
+    --shift -100 --extsize 200 \
+    -t human.sorted.bed \
+    -n human.sorted --outdir ./peaks/ &>log.macs2
+# -rw-rw-r-- 1 ggj ggj 1.3M 5月  16 10:02 human.sorted_peaks.narrowPeak
+# -rw-rw-r-- 1 ggj ggj 1.4M 5月  16 10:02 human.sorted_peaks.xls
+# -rw-rw-r-- 1 ggj ggj 910K 5月  16 10:02 human.sorted_summits.bed
+
+# FRiP
+Reads=$(bedtools intersect -a human.sorted.bed -b ./peaks/human.sorted_peaks.narrowPeak |wc -l|awk '{print $1}')
+totalReads=$(wc -l human.sorted.bed|awk '{print $1}')
+echo $Reads $totalReads 
+echo '==> FRiP value:' $(bc <<< "scale=2;100*$Reads/$totalReads")'%'
+
+# TSS enrichment
 bamCoverage -p 5 --normalizeUsing RPKM -b human.sorted.bam -o human.sorted.bw &>log.bamCoverage
 # bamCoverage --normalizeUsing CPM -b $id -o ${id%%.*}.rm.bw & 
 

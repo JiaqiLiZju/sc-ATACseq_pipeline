@@ -3,6 +3,9 @@
 # h5py
 # numpy
 # pybedtools
+# snaptools
+# deeptools
+# macs2
 
 # install using pip
 pip install snaptools
@@ -21,3 +24,9 @@ git clone https://github.com/deeptools/deepTools.git
 wget https://github.com/deeptools/deepTools/archive/1.5.12.tar.gz
 tar -xzvf
 python setup.py install --prefix /User/Tools/deepTools2.0
+
+# install macs2
+pip install MACS2
+
+# Install macs2 from source code
+python setup.py install --prefix=$HOME

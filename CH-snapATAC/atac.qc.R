@@ -5,6 +5,7 @@ library(ATACseqQC)
 bamfile <- "tmp/human.bam"
 bamfile.labels <- gsub(".bam", "", basename(bamfile))
 
+#Estimate the library complexity
 bamQC(bamfile, outPath="./")
 estimateLibComplexity(readsDupFreq(bamfile))
 
