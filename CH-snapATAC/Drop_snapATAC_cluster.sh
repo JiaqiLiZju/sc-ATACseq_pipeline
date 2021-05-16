@@ -86,7 +86,7 @@ samtools view $outdir/Aligned.out.bam |awk -F'\t' 'function abs(x){return ((x < 
 samtools view $outdir/Aligned.out.bam -H  |cut -f 2,3 |grep -v VN |grep -v bwa |grep -v samtools |awk '{printf"%s\t%s\n", substr($1,4,length($1)-2), substr($2,4,length($2)-2)}' >$outdir/mix.chrom.sizes
 
 snaptools snap-pre \
-    --input-file=$outdir/Aligned.out.bam \
+	--input-file=$outdir/Aligned.out.bam \
 	--output-snap=$outdir/H.snap \
 	--genome-name=hg19 \
 	--genome-size=$outdir/mix.chrom.sizes \
@@ -97,7 +97,7 @@ snaptools snap-pre \
 	--keep-chrm=True \
 	--keep-single=True \
 	--keep-secondary=True \
-    --keep-discordant=True \
+	--keep-discordant=True \
 	--max-num=5000 \
 	--min-cov=10 \
 	--verbose=True
@@ -112,5 +112,5 @@ snaptools snap-add-bmat \
 if [ -f $outdir/H.snap ]; then
 	gzip ${sample_name}_H_R1.fastq;
 	gzip ${sample_name}_H_R2.fastq;
-    rm -r $tmpdir;
+	rm -r $tmpdir;
 fi
