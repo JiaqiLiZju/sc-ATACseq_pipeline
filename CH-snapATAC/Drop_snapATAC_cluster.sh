@@ -30,6 +30,9 @@ fi
 
 for i in $(ls *fastq.gz);do gunzip $i;done
 
+cp ${sample_name}_H_R1.fastq $tmpdir/H_R1_linker2.fastq
+cp ${sample_name}_H_R2.fastq $tmpdir/H_R2_linker2.fastq
+
 # filter linker
 # ${bbduk2} in=${sample_name}_H_R1.fastq in2=${sample_name}_H_R2.fastq \
 #     outm=$tmpdir/H_R1_linker1.fastq outm2=$tmpdir/H_R2_linker1.fastq \
@@ -85,7 +88,7 @@ samtools view $outdir/Aligned.out.bam -H  |cut -f 2,3 |grep -v VN |grep -v bwa |
 snaptools snap-pre \
     --input-file=$outdir/Aligned.out.bam \
 	--output-snap=$outdir/H.snap \
-	--genome-name=H \
+	--genome-name=hg19 \
 	--genome-size=$outdir/mix.chrom.sizes \
 	--overwrite=True \
 	--min-mapq=30 \
@@ -106,6 +109,8 @@ snaptools snap-add-bmat \
     --verbose=True
 
 # rm tmpdir if final output exist
-if [ -f -f $outdir/H.snap ]; then
-    rm -r $tmpdir
+if [ -f $outdir/H.snap ]; then
+	gzip ${sample_name}_H_R1.fastq;
+	gzip ${sample_name}_H_R2.fastq;
+    rm -r $tmpdir;
 fi
