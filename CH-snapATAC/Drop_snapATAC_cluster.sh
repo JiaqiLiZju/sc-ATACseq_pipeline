@@ -105,7 +105,7 @@ snaptools snap-pre \
 # add bmat
 snaptools snap-add-bmat \
     --snap-file=$outdir/H.snap \
-    --bin-size-list 5000 10000 50000 100000 \
+    --bin-size-list 5000 10000 20000 40000 50000 100000 \
     --verbose=True
 
 # rm tmpdir if final output exist
