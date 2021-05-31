@@ -61,7 +61,7 @@ samtools view $tmpdir/unaligned_tagged_Cell.correct.bam -H > $tmpdir/unaligned_t
 samtools view $tmpdir/unaligned_tagged_Cell.correct.bam | awk '{for (i=12; i<=NF; ++i) { if ($i ~ "^CB:Z:"){ td[substr($i,1,2)] = substr($i,6,length($i)-5); printf "%s:%s\n", td["CB"], $0 } } }' >> $tmpdir/unaligned_tagged_Cell.snap.sam
 
 # samtools view $tmpdir/unaligned_tagged_Cell.snap.bam | cut -f 1 | head
-java -Xmx100g -jar ${picard_jar} SamToFastq INPUT=$tmpdir/unaligned_tagged_Cell.snap.sam READ1_TRIM=62 FASTQ=$tmpdir/unaligned_R1.fastq SECOND_END_FASTQ=$tmpdir/unaligned_R2.fastq
+java -Xmx100g -jar ${picard_jar} SamToFastq INPUT=$tmpdir/unaligned_tagged_Cell.snap.sam READ1_TRIM=112 FASTQ=$tmpdir/unaligned_R1.fastq SECOND_END_FASTQ=$tmpdir/unaligned_R2.fastq
 
 # Step 3. Alignment
 snaptools align-paired-end \
