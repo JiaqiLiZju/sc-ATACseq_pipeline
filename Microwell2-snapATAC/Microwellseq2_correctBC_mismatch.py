@@ -47,8 +47,8 @@ def correct_barcodes(input_folder, output_folder,barcodepath,samfile):
 			line=f1.readline()
 		else:
 			# find the 3 barcodes and hy barcode
-			barcode=line[line.rfind("XC:Z:"):]
-			ch1=line[:line.rfind("XC:Z:")]
+			barcode=line[line.rfind("CB:Z:"):]
+			ch1=line[:line.rfind("CB:Z:")]
 			ch2=line[line.rfind("RG:Z:"):]
 			barcode1=barcode[5:11]
 			barcode2=barcode[11:17]
@@ -61,7 +61,7 @@ def correct_barcodes(input_folder, output_folder,barcodepath,samfile):
 				rtbarcode_match2=barcode_list2[barcode2]
 				rtbarcode_match3=barcode_list3[barcode3]
 				rtbarcode_match4=barcode_list4[barcode4]
-				line_write=ch1+"XC:Z:"+rtbarcode_match1+rtbarcode_match2+rtbarcode_match3+rtbarcode_match4+'\t'+ch2
+				line_write=ch1+"CB:Z:"+rtbarcode_match1+rtbarcode_match2+rtbarcode_match3+rtbarcode_match4+'\t'+ch2
 				f2.writelines(line_write)
 				line=f1.readline()
 			else: 

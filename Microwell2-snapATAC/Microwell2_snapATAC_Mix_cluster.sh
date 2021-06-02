@@ -30,6 +30,8 @@ if [ ! -d $tmpdir ]; then
 fi
 
 for i in $(ls *fastq.gz);do gunzip $i;done
+mv ${sample_name}_H_R1.fastq $tmpdir/H_R1_linker2.fastq
+mv ${sample_name}_H_R2.fastq $tmpdir/H_R2_linker2.fastq
 
 # filter linker
 # ${bbduk2} in=${sample_name}_H_R1.fastq in2=${sample_name}_H_R2.fastq \
@@ -41,7 +43,7 @@ for i in $(ls *fastq.gz);do gunzip $i;done
 #     fliteral=AGATGTGTATAAGAGACAG k=19 skipr2=t hdist=3 -Xmx80g  
 
 # pre-alignment tag and trim
-java -jar ${picard_jar} FastqToSam F1=$tmpdir/H_R1_linker2.fastq F2=$tmpdir/H_R2_linker2.fastq O=H.bam QUALITY_FORMAT=Standard SAMPLE_NAME=sample_name 
+java -jar ${picard_jar} FastqToSam F1=$tmpdir/H_R1_linker2.fastq F2=$tmpdir/H_R2_linker2.fastq O=H.bam QUALITY_FORMAT=Standard SAMPLE_NAME=sample_name TMP_DIR=$tmpdir
 
 ${dropseq_root}/TagBamWithReadSequenceExtended SUMMARY=${outdir}/unaligned_tagged_Cellular.bam_summary_R1.txt \
     BASE_RANGE=1-6:22-27:43-48:84-93 BASE_QUALITY=10 BARCODED_READ=1 TAG_BARCODED_READ=true DISCARD_READ=false TAG_NAME=CB NUM_BASES_BELOW_QUALITY=1 \
@@ -54,9 +56,9 @@ ${dropseq_root}/TagBamWithReadSequenceExtended SUMMARY=${outdir}/unaligned_tagge
 # barcode correct
 samtools view -h $tmpdir/unaligned_tagged_Cell.bam > $tmpdir/unaligned_tagged_Cell.sam
 python $correctBC_script $tmpdir $tmpdir $barcodepath unaligned_tagged_Cell.sam
-samtools view -bS $tmpdir/unaligned_tagged_Cell.corrected.sam > $tmpdir/unaligned_tagged_Cell.correct.bam
+samtools view -bS $tmpdir/unaligned_tagged_filtered_corrected.sam > $tmpdir/unaligned_tagged_Cell.correct.bam
 
-# # barcode qname
+# barcode qname
 samtools view $tmpdir/unaligned_tagged_Cell.correct.bam -H > $tmpdir/unaligned_tagged_Cell.snap.sam
 samtools view $tmpdir/unaligned_tagged_Cell.correct.bam | awk '{for (i=12; i<=NF; ++i) { if ($i ~ "^CB:Z:"){ td[substr($i,1,2)] = substr($i,6,length($i)-5); printf "%s:%s\n", td["CB"], $0 } } }' >> $tmpdir/unaligned_tagged_Cell.snap.sam
 
