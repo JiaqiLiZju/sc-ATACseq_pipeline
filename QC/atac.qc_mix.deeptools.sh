@@ -1,5 +1,5 @@
 # sort bam
-samtools sort -m 10G -@ 20 -o human.sorted.bam human.bam 
+samtools sort -f -m 100G -@ 20 human.bam human.sorted.bam
 samtools index human.sorted.bam
 
 # Insert QC
@@ -15,11 +15,15 @@ macs2 callpeak -g hs --nomodel \
 # -rw-rw-r-- 1 ggj ggj 1.4M 5月  16 10:02 human.sorted_peaks.xls
 # -rw-rw-r-- 1 ggj ggj 910K 5月  16 10:02 human.sorted_summits.bed
 
+# peak number
+peaks=$(cat peaks/human.sorted_summits.bed |wc -l)
+echo '==> HUMAN peaks:' $peaks  >peaks.txt
+
 # FRiP
 Reads=$(bedtools intersect -a human.sorted.bed -b ./peaks/human.sorted_peaks.narrowPeak |wc -l|awk '{print $1}')
 totalReads=$(wc -l human.sorted.bed|awk '{print $1}')
-echo HUMAN $Reads $totalReads 
-echo '==> FRiP value:' $(bc <<< "scale=2;100*$Reads/$totalReads")'%'
+echo HUMAN $Reads $totalReads >>peaks.txt
+echo '==> FRiP value:' $(bc <<< "scale=2;100*$Reads/$totalReads")'%' >>peaks.txt
 
 # TSS enrichment
 bamCoverage -p 5 --normalizeUsing RPKM -b human.sorted.bam -o human.sorted.bw &>log.bamCoverage
@@ -52,7 +56,7 @@ plotProfile -m matrix1_test_body.gz  -out test_body_Profile.png
 plotProfile -m matrix1_test_body.gz -out test_Body_Profile.pdf --plotFileFormat pdf --perGroup --dpi 720
 
 # sort bam
-samtools sort -m 10G -@ 20 -o mouse.sorted.bam mouse.bam 
+samtools sort -f -m 100G -@ 20 mouse.bam mouse.sorted.bam
 samtools index mouse.sorted.bam
 
 # Insert QC

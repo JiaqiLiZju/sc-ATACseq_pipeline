@@ -15,11 +15,15 @@ macs2 callpeak -g hs --nomodel \
 # -rw-rw-r-- 1 ggj ggj 1.4M 5月  16 10:02 human.sorted_peaks.xls
 # -rw-rw-r-- 1 ggj ggj 910K 5月  16 10:02 human.sorted_summits.bed
 
+# peak number
+peaks=$(cat peaks/human.sorted_summits.bed |wc -l)
+echo '==> peaks:' $peaks >peaks.txt
+
 # FRiP
 Reads=$(bedtools intersect -a human.sorted.bed -b ./peaks/human.sorted_peaks.narrowPeak |wc -l|awk '{print $1}')
 totalReads=$(wc -l human.sorted.bed|awk '{print $1}')
-echo $Reads $totalReads 
-echo '==> FRiP value:' $(bc <<< "scale=2;100*$Reads/$totalReads")'%'
+echo $Reads $totalReads >>peaks.txt
+echo '==> FRiP value:' $(bc <<< "scale=2;100*$Reads/$totalReads")'%' >>peaks.txt
 
 # TSS enrichment
 bamCoverage -p 5 --normalizeUsing RPKM -b human.sorted.bam -o human.sorted.bw &>log.bamCoverage
