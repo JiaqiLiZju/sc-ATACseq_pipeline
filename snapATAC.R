@@ -1,68 +1,90 @@
-setwd("/media/ggj/Files/scATAC/CHATAC/HumanMouseMix_20210510/COL10/")
+options(future.globals.maxSize=200*1024^3)
+getOption("future.globals.maxSize")
 
+setwd("/media/ggj/Files/scATAC/CHATAC/Axolotl/")
 library(SnapATAC);
 
 # Step 1. Barcode selection
 x.sp = createSnap(
-  file="human.snap",
-  sample="human",
+  file="../Axolotl-batch2-20210604-AllPeak/COL100/bowtie_out/H.snap",
+  sample="Axolotl",
   num.cores=10
 );
+
+x.sp #5000 cells
 barcodes = x.sp@barcode
 metadata = x.sp@metaData
-sel = sort(metadata$UM, decreasing = T, index.return=T)$ix[1:500]
+sel = sort(metadata$UM, decreasing = T, index.return=T)$ix[1:1000]
 metadata.sel = metadata[sel,]
 head(metadata.sel)
-summary(metadata.sel$UM)
-summary(metadata.sel$UQ)
-summary(metadata.sel$TN)
+summary(metadata.sel$UM) #Total number of uniquely mapped
+summary(metadata.sel$UQ) #Total number of unique fragments
+summary(metadata.sel$TN) #Total number of fragments
 
-write.csv(metadata.sel, file = "./mouse.summary.txt")
+# write.csv(metadata.sel, file = "./Axolotl.summary_xin.txt")
 
 x.sp.sel = x.sp[sel,];
 # x.sp.sel@metaData = barcodes.sel[x.sp@barcode,];
 x.sp <- x.sp.sel
 x.sp
 
-barcodes = read.csv(
-  "atac_v1_adult_brain_fresh_5k_singlecell.csv",
-  head=TRUE
+x.sp <- readRDS("./x.fater.sp-batch2-BS5k.rds")
+
+# sed 's/"/\t/g' AmexG_v3.0.0.fa.gtf | awk 'BEGIN{OFS=FS="\t"}{if($3=="gene") {if($7=="+") {start=$4-2000; end=$4+2000;} else {if($7=="-") start=$5-2000; end=$5+2000; } if(start<0) start=0; print $1,start,end,$14,$10,$7;}}' >AmexG.promoter.bed
+promoters_list = read.csv("./AmexG.promoter.bed", sep='\t', header=F);
+promoters_list.gr = GRanges(
+  promoters_list[,1],
+  IRanges(promoters_list[,2], promoters_list[,3])
 );
-barcodes = barcodes[2:nrow(barcodes),];
-promoter_ratio = (barcodes$promoter_region_fragments+1) / (barcodes$passed_filters + 1);
-UMI = log(barcodes$passed_filters+1, 10);
-data = data.frame(UMI=UMI, promoter_ratio=promoter_ratio);
-barcodes$promoter_ratio = promoter_ratio;
+idy = queryHits(findOverlaps(x.sp@feature, promoters_list.gr));
+if(length(idy) > 0){x.sp.promoter = x.sp.promoter[,-idy, mat="bmat"]};
+x.sp.promoter
+
+promoter.covs <- Matrix::rowSums(x.sp.promoter@bmat);
+UMI.covs <- Matrix::rowSums(x.sp@bmat);
+promoter_ratio <- promoter.covs / UMI.covs 
+data = data.frame(UMI=log10(UMI.covs+1), promoter_ratio=promoter_ratio);
+# row.names(data) <- x.sp@barcode
+
+# barcodes = read.csv(
+#   "atac_v1_adult_brain_fresh_5k_singlecell.csv",
+#   head=TRUE
+# );
+# barcodes = barcodes[2:nrow(barcodes),];
+# promoter_ratio = (barcodes$promoter_region_fragments+1) / (barcodes$passed_filters + 1);
+# UMI = log(barcodes$passed_filters+1, 10);
+# data = data.frame(UMI=UMI, promoter_ratio=promoter_ratio);
+# barcodes$promoter_ratio = promoter_ratio;
 
 library(viridisLite);
 library(ggplot2);
-p1 = ggplot(
-  data, 
-  aes(x= UMI, y= promoter_ratio)) + 
+ggplot(
+  data,
+  aes(x= UMI, y= promoter_ratio)) +
   geom_point(size=0.1, col="grey") +
   theme_classic() +
   ggtitle("10X Fresh Adult Brain") +
   ylim(0, 1) + xlim(0, 6) +
-  labs(x = "log10(UMI)", y="promoter ratio") 
-p1 
-barcodes.sel = barcodes[which(UMI >= 3 & UMI <= 5 & promoter_ratio >= 0.15 & promoter_ratio <= 0.6),];
-rownames(barcodes.sel) = barcodes.sel$barcode;
+  labs(x = "log10(UMI)", y="promoter ratio")
 
-x.sp.sel = x.sp[which(x.sp@barcode %in% barcodes.sel$barcode),];
-x.sp.sel@metaData = barcodes.sel[x.sp@barcode,];
+barcodes.sel <- which(UMI >= 2 & UMI <= 6 & promoter_ratio >= 0.5 & promoter_ratio <= 0.9);
+
+x.sp.sel = x.sp[barcodes.sel,];
+x.sp.sel@metaData$UMI = data$UMI[barcodes.sel]
+x.sp.sel@metaData$promoter_ratio = data$promoter_ratio[barcodes.sel]
 x.sp.sel
 
-
 # Step 2. Add cell-by-bin matrix
-showBinSizes("./human.snap");
-x.sp = addBmatToSnap(x.sp, bin.size=10000, num.cores=1);
-
+showBinSizes("../Axolotl-batch2-20210604-AllPeak/COL100/bowtie_out/H.snap");
+x.sp = addBmatToSnap(x.sp, bin.size=50000, num.cores=4);
+x.sp = addPmatToSnap(x.sp, num.cores=4);
+x.sp
 # Step 3. Matrix binarization
 x.sp = makeBinary(x.sp, mat="bmat");
-x.sp
+x.sp@bmat
 
 # Step 4. Bin filtering
-# system("wget http://mitra.stanford.edu/kundaje/akundaje/release/blacklists/mm10-mouse/mm10.blacklist.bed.gz");
+# system("wget https://www.axolotl-omics.org/dl/RM_all_repeats.bed.gz");
 library(GenomicRanges);
 black_list = read.table("mm10.blacklist.bed.gz");
 black_list.gr = GRanges(
@@ -73,13 +95,12 @@ idy = queryHits(findOverlaps(x.sp@feature, black_list.gr));
 if(length(idy) > 0){x.sp = x.sp[,-idy, mat="bmat"]};
 x.sp
 
-
 chr.exclude = seqlevels(x.sp@feature)[grep("random|chrM", seqlevels(x.sp@feature))];
 idy = grep(paste(chr.exclude, collapse="|"), x.sp@feature);
 if(length(idy) > 0){x.sp = x.sp[,-idy, mat="bmat"]};
 x.sp
 
-
+# bin filter
 bin.cov = log10(Matrix::colSums(x.sp@bmat)+1);
 hist(
   bin.cov[bin.cov > 0], 
@@ -88,12 +109,11 @@ hist(
   col="lightblue", 
   xlim=c(0, 3)
 );
-bin.cutoff = quantile(bin.cov[bin.cov > 0], 0.99);
-bin.cutoff = 1
-idy = which(bin.cov <= bin.cutoff & bin.cov > 0);
+bin.cutoff = quantile(bin.cov[bin.cov > 0], 0.999);
+bin.cutoff 
+idy = which(bin.cov <= bin.cutoff & bin.cov > 0.1);
 x.sp = x.sp[, idy, mat="bmat"];
 x.sp
-
 
 # Step 5. Dimensionality reduction
 x.sp = runDiffusionMaps(
@@ -120,7 +140,7 @@ plotDimReductPW(
 # Step 7. Graph-based clustering
 x.sp = runKNN(
   obj=x.sp,
-  eigs.dims=1:20,
+  eigs.dims=1:15,
   k=15
 );
 x.sp=runCluster(
@@ -136,15 +156,16 @@ x.sp = runViz(
   obj=x.sp, 
   tmp.folder=tempdir(),
   dims=2,
-  eigs.dims=1:20, 
+  eigs.dims=1:15, 
   method="Rtsne",
   seed.use=10
 );
-par(mfrow = c(2, 2));
+# par(mfrow = c(2, 2));
+
 plotViz(
   obj=x.sp,
   method="tsne", 
-  main="CHATAC Human",
+  main="CH-ATAC(Axolotl)",
   point.color=x.sp@cluster, 
   point.size=1, 
   point.shape=19, 
@@ -163,40 +184,40 @@ plotFeatureSingle(
   obj=x.sp,
   feature.value=log(x.sp@metaData$TN+1,10),
   method="tsne", 
-  main="10X Brain Read Depth",
+  main="Read Depth",
   point.size=0.2, 
   point.shape=19, 
   down.sample=10000,
   quantiles=c(0.01, 0.99)
 ); 
 
-plotFeatureSingle(
-  obj=x.sp,
-  feature.value=x.sp@metaData$peak_region_fragments / x.sp@metaData$passed_filters,
-  method="tsne", 
-  main="10X Brain FRiP",
-  point.size=0.2, 
-  point.shape=19, 
-  down.sample=10000,
-  quantiles=c(0.01, 0.99) # remove outliers
-);
+#plotFeatureSingle(
+#  obj=x.sp,
+#  feature.value=x.sp@metaData$peak_region_fragments / x.sp@metaData$passed_filters,
+#  method="tsne", 
+#  main="FRiP",
+#  point.size=0.2, 
+#  point.shape=19, 
+#  down.sample=10000,
+#  quantiles=c(0.01, 0.99) # remove outliers
+#);
 
-plotFeatureSingle(
-  obj=x.sp,
-  feature.value=x.sp@metaData$duplicate / x.sp@metaData$total,
-  method="tsne", 
-  main="10X Brain Duplicate",
-  point.size=0.2, 
-  point.shape=19, 
-  down.sample=10000,
-  quantiles=c(0.01, 0.99) # remove outliers
-)
+#plotFeatureSingle(
+#  obj=x.sp,
+#  feature.value=x.sp@metaData$duplicate / x.sp@metaData$total,
+#  method="tsne", 
+#  main="Duplicate",
+#  point.size=0.2, 
+#  point.shape=19, 
+#  down.sample=10000,
+#  quantiles=c(0.01, 0.99) # remove outliers
+#)
 
 # Step 9. Gene based annotation
 # system("wget http://renlab.sdsc.edu/r3fang/share/github/Mouse_Brain_10X/gencode.vM16.gene.bed");
 genes = read.table("../../Mix.Human.Refseq.bed");
 genes.gr = GRanges(genes[,1], 
-                     IRanges(genes[,2], genes[,3]), name=genes[,4]
+                   IRanges(genes[,2], genes[,3]), name=genes[,4]
 );
 marker.genes = c(
   "NM_001101", "NM_002046"
@@ -306,14 +327,14 @@ peak.gr
 # Step 12. Create a cell-by-peak matrix
 peaks.df = as.data.frame(peak.gr)[,1:3];
 write.table(peaks.df,file = "peaks.combined.bed",append=FALSE,
-              quote= FALSE,sep="\t", eol = "\n", na = "NA", dec = ".", 
-              row.names = FALSE, col.names = FALSE, qmethod = c("escape", "double"),
-              fileEncoding = "")
+            quote= FALSE,sep="\t", eol = "\n", na = "NA", dec = ".", 
+            row.names = FALSE, col.names = FALSE, qmethod = c("escape", "double"),
+            fileEncoding = "")
 saveRDS(x.sp, file="atac_v1_adult_brain_fresh_5k.snap.rds");
 
 system("snaptools snap-add-pmat \
-          --snap-file ./human.snap \
-          --peak-file peaks.combined.bed")
+       --snap-file ./human.snap \
+       --peak-file peaks.combined.bed")
 
 # Step 13. Add cell-by-peak matrix
 # x.sp = readRDS("atac_v1_adult_brain_fresh_5k.snap.rds");
@@ -335,15 +356,15 @@ DARs$FDR = p.adjust(DARs$PValue, method="BH");
 idy = which(DARs$FDR < 5e-2 & DARs$logFC > 0);
 par(mfrow = c(1, 2));
 plot(DARs$logCPM, DARs$logFC, 
-       pch=19, cex=0.1, col="grey", 
-       ylab="logFC", xlab="logCPM",
-       main="Cluster 26"
+     pch=19, cex=0.1, col="grey", 
+     ylab="logFC", xlab="logCPM",
+     main="Cluster 26"
 );
 points(DARs$logCPM[idy], 
-         DARs$logFC[idy], 
-         pch=19, 
-         cex=0.5, 
-         col="red"
+       DARs$logFC[idy], 
+       pch=19, 
+       cex=0.5, 
+       col="red"
 );
 abline(h = 0, lwd=1, lty=2);
 covs = Matrix::rowSums(x.sp@pmat);
