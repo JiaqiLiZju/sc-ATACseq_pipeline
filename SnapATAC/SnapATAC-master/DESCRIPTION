@@ -1,0 +1,77 @@
+Package: SnapATAC
+Version: 1.0.0
+Date: 2019-03-28
+Title: Single Nucleus Analysis Package for ATAC-Seq
+Authors@R: person(given = "Rongxin", family = "Fang", email = "r4fang@gmail.com", role = c("aut", "cre"))
+Description: A fast and accurate analysis toolkit for single cell ATAC-seq. Single cell ATAC-seq can resolve the heterogeneity of a complex tissue and reveal cell-type specific regulatory landscapes. However, the exceeding data sparsity has posed unique challenges for the data analysis. SnapATAC is an end-to-end bioinformatics pipeline for analyzing large-scale single cell ATAC-seq data which includes quality control, normalization, clustering analysis, differential analysis, motif inference and exploration of single cell ATAC-seq sequencing data. See Preissl S, Fang R, et al (2018) <doi:10.1038/s41593-018-0079-3> for more details.
+biocViews: Software
+URL: https://github.com/r3fang/SnapATAC
+BugReports: https://github.com/r3fang/SnapATAC/issues
+Depends:
+	R (>= 3.4.0),
+	Matrix (>= 1.2.14),
+	rhdf5 (>= 2.20.0),
+	methods
+Imports:
+	GenomicRanges,
+	IRanges,
+	stats,
+	raster,
+	irlba,
+	Rtsne,
+	edgeR,
+	RANN,
+	scales,
+	RColorBrewer,
+	parallel,
+	foreach,
+	doParallel,
+	igraph,
+	plyr,
+	bigmemory,
+	grDevices, 
+	graphics, 
+	utils,
+	viridis
+Suggests:
+	umap,
+	chromVAR,
+	leiden,
+	lda,
+	doSNOW
+License: GPL-3 | file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+Collate: 
+    'createGmat.R'
+    'createPmat.R'
+    'data.R'
+    'dimReduct-class.R'
+    'findDARs.R'
+    'jaccard-class.R'
+    'kgraph-class.R'
+    'makeBinary.R'
+    'utilities.R'
+    'normJaccard.R'
+    'plottings-utilities.R'
+    'plottings.R'
+    'predictGenePeakPair.R'
+    'runChromVAR.R'
+    'runClusters.R'
+    'runDimReduct.R'
+    'runHarmony.R'
+    'runHomer.R'
+    'runJaccard.R'
+    'snap-class.R'
+    'runKNN.R'
+    'runLDA.R'
+    'runLDM.R'
+    'runLSA.R'
+    'runMACS.R'
+    'runMagic.R'
+    'runSnapAddPmat.R'
+    'runViz.R'
+    'scaleCountMatrix.R'
+    'snap-utilities.R'
+    'snapToSeurat.R'
