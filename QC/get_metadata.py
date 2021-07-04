@@ -19,6 +19,8 @@ df = pd.DataFrame({
             "UQ":fh["BD/UQ"][:],
             "US":fh["BD/US"][:],
             },
-            index=map(lambda x: x.decode(), fh["BD/name"][:])).to_csv(h5file.replace("snap", 'metadata.csv'))
+            index=map(lambda x: x.decode(), fh["BD/name"][:]))
+
+df.to_csv(h5file.replace("snap", 'metadata.csv'))
 
 fh.close()
