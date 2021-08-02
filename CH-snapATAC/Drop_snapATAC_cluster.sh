@@ -98,7 +98,7 @@ snaptools snap-pre \
 	--keep-single=True \
 	--keep-secondary=True \
 	--keep-discordant=True \
-	--max-num=5000 \
+	--max-num=5000 \ # num_core_barcode
 	--min-cov=10 \
 	--verbose=True
 
