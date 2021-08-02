@@ -74,3 +74,9 @@ make_tracks_file --trackFiles \
 # track-plot
 pyGenomeTracks --tracks tracks.ini --region HUMAN_8:0-25000000 --outFileName tracks_zoom.png --width 50 --fontSize 5 --dpi 300
 pyGenomeTracks --tracks tracks.ini --region chr8:0-25000000 --outFileName tracks_zoom.png --width 50 --fontSize 5 --dpi 300
+
+# TSS enrichment
+python fraglist.py Human.snap
+cat barcode_fragment_human.bed |cut -f 4 |uniq >barcode.idx
+head Mix.Human19.Refseq.bed
+ATACCellTSS -bed barcode_fragment_human.bed -xgi barcode.idx -tss ./Mix.Human19.Refseq.bed -out barcode_tssEnrich.txt

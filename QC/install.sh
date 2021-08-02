@@ -9,3 +9,6 @@ python setup.py install
 
 # deeptools
 wget https://files.pythonhosted.org/packages/8c/9b/92fbfc413548a5d690061ef533c7521af71ebce733ce50e4b6eea3d69d4a/deepTools-3.5.1-py3-none-any.whl
+
+# go ATACdemultiplex
+go get -v -u gitlab.com/Grouumf/ATACdemultiplex/...
