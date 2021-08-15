@@ -1,5 +1,5 @@
 # sort bam
-samtools sort -m 10G -@ 20 -o human.sorted.bam human.bam
+samtools sort -o human.sorted.bam human.bam
 samtools index human.sorted.bam
 
 # Insert QC
@@ -7,7 +7,7 @@ samtools view $outdir/human.sorted.bam |awk -F'\t' 'function abs(x){return ((x <
 
 # peak-calling
 bedtools bamtobed -i human.sorted.bam >human.sorted.bed
-macs2 callpeak -g hs \
+macs2 callpeak -g hs \ # effective genome size
     --nomodel --shift 100 --extsize 200 \
     --qval 5e-2 -B --SPMR \
     -f BED -t human.sorted.bed \
@@ -76,7 +76,7 @@ pyGenomeTracks --tracks tracks.ini --region HUMAN_8:0-25000000 --outFileName tra
 pyGenomeTracks --tracks tracks.ini --region chr8:0-25000000 --outFileName tracks_zoom.png --width 50 --fontSize 5 --dpi 300
 
 # TSS enrichment
-python fraglist.py Human.snap
+python fraglist.py Human.snap barcode_fragment_human.bed
 cat barcode_fragment_human.bed |cut -f 4 |uniq >barcode.idx
 head Mix.Human19.Refseq.bed
 ATACCellTSS -bed barcode_fragment_human.bed -xgi barcode.idx -tss ./Mix.Human19.Refseq.bed -out barcode_tssEnrich.txt

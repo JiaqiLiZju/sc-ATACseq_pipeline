@@ -1,7 +1,7 @@
 import h5py
 from sys import argv
 
-snap_file = argv[1]
+snap_file, out_file = argv[1:]
 f = h5py.File(snap_file, "r")
 
 frag_list = []
@@ -43,4 +43,4 @@ def data_write_csv(file_name, datas):
         writer.writerow(data)
     print("ok")
 
-data_write_csv('barcode_fragment_human.bed',frag_list)
+data_write_csv(out_file, frag_list)
