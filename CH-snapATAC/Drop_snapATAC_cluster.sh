@@ -65,11 +65,14 @@ samtools view $tmpdir/unaligned_tagged_Cell.correct.bam | awk '{for (i=12; i<=NF
 # samtools view $tmpdir/unaligned_tagged_Cell.snap.bam | cut -f 1 | head
 java -Xmx100g -jar ${picard_jar} SamToFastq INPUT=$tmpdir/unaligned_tagged_Cell.snap.sam READ1_TRIM=20 FASTQ=$tmpdir/unaligned_R1.fastq SECOND_END_FASTQ=$tmpdir/unaligned_R2.fastq
 
+# java -jar trimmomatic.jar PE -phred33 $tmpdir/unaligned_R1.fastq $tmpdir/unaligned_R2.fastq -baseout unaligned.fq.gz ILLUMINACLIP:TruSeq2-PE.fa:2:30:10 SLIDINGWINDOW:5:20 LEADING:5 TRAILING:5 MINLEN:50
+SOAPnuke -1 $tmpdir/unaligned_R1.fastq -2 $tmpdir/unaligned_R2.fastq -o $tmpdir -C unaligned_1P.fq.gz -D unaligned_2P.fq.gz
+
 # Step 3. Alignment
 snaptools align-paired-end \
 	--input-reference=${reference} \
-	--input-fastq1=$tmpdir/unaligned_R1.fastq \
-	--input-fastq2=$tmpdir/unaligned_R2.fastq \
+	--input-fastq1=$tmpdir/unaligned_1P.fq.gz  \
+	--input-fastq2=$tmpdir/unaligned_2P.fq.gz  \
 	--output-bam=$outdir/Aligned.out.bam \
 	--aligner=$(basename $bwa_exec) \
 	--path-to-aligner=$(dirname $bwa_exec) \
