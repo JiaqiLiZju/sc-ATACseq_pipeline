@@ -60,7 +60,11 @@ samtools view $tmpdir/unaligned_tagged_Cell.correct.bam -H > $tmpdir/unaligned_t
 samtools view $tmpdir/unaligned_tagged_Cell.correct.bam | awk '{for (i=12; i<=NF; ++i) { if ($i ~ "^CB:Z:"){ td[substr($i,1,2)] = substr($i,6,length($i)-5); printf "%s:%s\n", td["CB"], $0 } } }' >> $tmpdir/unaligned_tagged_Cell.snap.sam
 
 # samtools view $tmpdir/unaligned_tagged_Cell.snap.bam | cut -f 1 | head
-java -Xmx100g -jar ${picard_jar} SamToFastq INPUT=$tmpdir/unaligned_tagged_Cell.snap.sam READ1_TRIM=62 FASTQ=$tmpdir/unaligned_R1.fastq SECOND_END_FASTQ=$tmpdir/unaligned_R2.fastq
+java -Xmx100g -jar ${picard_jar} SamToFastq INPUT=$tmpdir/unaligned_tagged_Cell.snap.sam FASTQ=$tmpdir/unaligned_R1.fastq SECOND_END_FASTQ=$tmpdir/unaligned_R2.fastq #READ1_TRIM=62
+
+echo -e "adaMis=2\ntrim=62,38,0,100" >$tmpdir/soapnuke.config
+# java -jar trimmomatic.jar PE -phred33 $tmpdir/unaligned_R1.fastq $tmpdir/unaligned_R2.fastq -baseout unaligned.fq.gz ILLUMINACLIP:TruSeq2-PE.fa:2:30:10 SLIDINGWINDOW:5:20 LEADING:5 TRAILING:5 MINLEN:50
+/share/home/guoguoji/tools/SOAPnuke/SOAPnuke filter -1 $tmpdir/unaligned_R1.fastq -2 $tmpdir/unaligned_R2.fastq -o $tmpdir -C unaligned_1P.fq.gz -D unaligned_2P.fq.gz -f CTGTCTCTTATACACATCT -r CTGTCTCTTATACACATCT -J -c $tmpdir/soapnuke.config
 
 # Step 3. Alignment
 snaptools align-paired-end \
@@ -85,10 +89,10 @@ samtools view $outdir/Aligned.out.bam -H  |cut -f 2,3 |grep -v VN |grep -v bwa |
 snaptools snap-pre \
     --input-file=$outdir/Aligned.out.bam \
 	--output-snap=$outdir/H.snap \
-	--genome-name=H \
+	--genome-name=hg19 \
 	--genome-size=$outdir/mix.chrom.sizes \
 	--overwrite=True \
-	--min-mapq=30 \
+	--min-mapq=10 \
 	--min-flen=0 \
 	--max-flen=1000 \
 	--keep-chrm=True \
