@@ -22,14 +22,13 @@ for barcode in f["BD"]["name"]:
 
 # frag_list = [];
 # for read_group in group_reads_by_barcode('COL10_human.bam', 'bam'):
-
 #   for (read1, read2, is_paired, is_secondary) in pairReadsByName(read_group):
 #     if is_paired:
 #       frag = readPairToFragment(read1, read2, is_secondary);
 #     else: # supplementary alignments or unmated reads;
 #       frag = readToFragment(read1, is_secondary);
 #     barcode = frag.qname.split(":")[0].upper();
-#     frag_list.append((frag.chrom, frag.pos, frag.pos+frag.flen, barcode))
+#     frag_list.append((read1, read2, frag.chrom, frag.pos, frag.pos+frag.flen, barcode))
 
   # frag_list_uniq = set(frag_list); # remove duplicated fragments
   # just in case the only fragments are chrM
