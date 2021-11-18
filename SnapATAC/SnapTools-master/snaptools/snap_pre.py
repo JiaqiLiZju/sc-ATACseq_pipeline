@@ -282,7 +282,7 @@ def snap_pre(input_file,
                 if is_paired:
                     frag = snaptools.snap.readPairToFragment(read1, read2, is_secondary);
                 else: # supplementary alignments or unmated reads;
-                    frag = snaptools.snap.readToFragment(read1, is_secondary);            
+                    frag = snaptools.snap.readToFragment(read1, is_secondary);
                 # extract the barcode
                 barcode = frag.qname.split(":")[0].upper();
                 # only for printing the progress

@@ -1,6 +1,3 @@
-options(future.globals.maxSize=200*1024^3)
-getOption("future.globals.maxSize")
-
 setwd("/media/ggj/Files/scATAC/CHATAC/Axolotl/")
 library(SnapATAC);
 
