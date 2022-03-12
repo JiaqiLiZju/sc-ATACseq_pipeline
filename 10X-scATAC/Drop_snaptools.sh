@@ -102,7 +102,7 @@ snaptools snap-add-pmat \
 
 samtools sort -o WOC1_barcode_sort.bam WOC1_barcode.bam
 samtools index WOC1_barcode_sort.bam
-bamCoverage --bam WOC1_barcode_sort.bam -o WOC1_barcode_sort.SeqDepthNorm.bw \
+bamCoverage --bam WOC1_barcode_sort.bam -o WOC1_barcode_C11_sort.SeqDepthNorm.bw \
     --binSize 10 \
     --normalizeUsing RPGC \
     --effectiveGenomeSize 1300000000
