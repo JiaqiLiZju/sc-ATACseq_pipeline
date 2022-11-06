@@ -425,7 +425,7 @@ motifs = runHomer(
   path.to.homer = "/home/ggj/jiaqiLi/general_global_soft/homer/bin/findMotifsGenome.pl",
   result.dir = "./homer/C5",
   num.cores=5,
-  genome = 'hb38',
+  genome = 'hg38',
   motif.length = 10,
   scan.size = 300,
   optimize.count = 2,
@@ -439,3 +439,45 @@ motifs = runHomer(
   keep.minimal = FALSE
 )
 
+# ---- run homer in console ------
+system("rm -r ./homer");
+result.dir<-"homer"
+dir.create(result.dir)
+
+levels(x.sp@cluster)
+for (i in levels(x.sp@cluster)) {
+  obj <- x.sp[,idy.ls[[i]],"pmat"]
+  x <- as.data.frame(obj@peak)[,c(1:3)]
+  x$seqnames<-as.character(x$seqnames)
+  x$seq='none'
+  for (j in 1:2000){  
+    x[j,4]<-unlist(strsplit(x$seqnames,"'"))[2*j]
+  }
+  x$seqnames=x$seq
+  x<-x[,-4]
+  
+  dir.create(paste0(result.dir, '/C', i))
+  write.table(x, file=paste0(result.dir, '/C', i, "/target.bed"), 
+              row.names=FALSE, col.names=FALSE, sep="\t", quote = FALSE)
+}
+
+# # run in terminal
+# for i in {1..14};do
+#   findMotifsGenome.pl ./C${i}/target.bed /media/ggj/Files/NvWA/PreprocGenome/database_genome/Smed_genome/SmedAsxl_genome_v1.1.nt \
+#     ./C${i} -len 10, -size 300 -S 2 -p 5 -cache 100 -fdr 5 &>log.$i &
+# done
+
+##merge
+motif <- matrix(nrow = 0, ncol = 5, byrow = TRUE)
+for (i in levels(x.sp@cluster)) {
+  fname <- paste0(result.dir, '/C', i, "/knownResults.txt")
+  if(!file.exists(fname)){next}
+  x = read.csv(fname, sep="\t", header=TRUE)
+  x$Cluster = i
+  x <- x[,c(10, 1:4)]
+  motif <- rbind(motif,x)
+}
+motif <- motif[motif['P.value'] < 0.05, ]
+
+WriteXLS::WriteXLS(motif, "Smed_motifs.xls",row.names = F)
+write.csv(motif, "Smed_motifs.csv",row.names = F)
